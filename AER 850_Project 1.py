@@ -171,7 +171,7 @@ for name, model in [('Logisitic Regression',Pipl_LogReg),('Decision Tree',Pipl_D
     print("Confusion Matrix:")
     # print(cm_LogRec)
     plt.figure()
-    sns.heatmap(np.abs(cm_[name]))
+    sns.heatmap(np.abs(cm_[name]), annot= True, fmt="0.2f")
     print("\n")
     # Performance Metrics 
     precision_[name] = precision_score(y_test, y_pred_[name],average='weighted',zero_division=0)
