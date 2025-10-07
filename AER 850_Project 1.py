@@ -101,6 +101,8 @@ print("\n")
 # X_test = X_test.drop(columns=['Y'])
 # X_test = X_test.drop(columns=['Z'])
 
+
+## Step 4,5,6 and 7
 # Training and Evaluating Data set based on models
 
 from sklearn.linear_model import LogisticRegression as LogisticReg
