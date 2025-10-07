@@ -4,6 +4,7 @@ Created on Mon Sep 29 12:31:29 2025
 
 @author: quich
 """
+## Used to quickly clear plots, figure and variables like in MATLAB
 # from IPython import get_ipython
 # import matplotlib.pyplot as plt
 # get_ipython().magic('clear')     # clears console
@@ -11,7 +12,7 @@ Created on Mon Sep 29 12:31:29 2025
 # plt.close('all')                 # closes all figures
 
 
-
+## Importing packages
 import pandas as pd
 import pathlib as path
 import numpy as np
@@ -23,22 +24,26 @@ from scipy.stats import randint
 import joblib
 #mport scikit as sk
 
+
+### Steps 1 and 2  - Data Visualisation
 ## Predict maintainance Step based on Coordinates provided
 ## Read the CSV/xlsx file
 df = pd.read_csv("Project 1 Data.csv")
 
 
-
+# Show the histogram as basic data visualisation 
 print(df.head())
 print(df.columns)
 print(df.X)
 print(df.Y)
 print(df.Z)
 print(df.Step)
-# df.hist()
+df.hist()
 
 
-## Correlation Matrix 
+
+
+### Step 3 - Correlation Matrix 
 # Target Variable is the step and training data 
 
 # import and use Stratified split. This reduces the risk of leakage which would skew results
@@ -52,13 +57,11 @@ for train_index, test_index in my_splitter.split(df, df["Step"]):
     strat_data_train = df.iloc[train_index].reset_index(drop=True)
     strat_data_test = df.iloc[test_index].reset_index(drop=True)
 
-# strat_data_train = strat_data_train.drop(columns=["Step"], axis = 1)
-# strat_data_test = strat_data_test.drop(columns=["Step"], axis = 1)
-
-print(df.shape)
-print(strat_data_train.shape)
-print(strat_data_test.shape)
-
+print("\n")
+print("Shape of the data Set:",df.shape)
+print("Trained Stratified Data Set:",strat_data_train.shape)
+print("Test Stratified Data Set",strat_data_test.shape)
+print("\n")
 
 ## Train data 
 # Identify y and X. Remember the goal is to find f(.) such that y=f(X)
@@ -73,16 +76,18 @@ corr_matrix = strat_data_train.corr()
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# plt.figure()
-# sns.heatmap(np.abs(corr_matrix))
+plt.figure(2)
+sns.heatmap(np.abs(corr_matrix), annot = True)
 
 
-# Drom correlation matrix, we identify colinear variables, and select one from them
+
+# From correlation matrix, we identify colinear variables, and select one from them
 # Usually, we keep the variable with the highest correlation with y, but this
 # does not generate the best results all the time. So, trial and error is needed.
-print(np.abs(y_train.corr(X_train['X'])))
-print(np.abs(y_train.corr(X_train['Y'])))
-print(np.abs(y_train.corr(X_train['Z'])))
+print("\n")
+print("Correlation of X:",np.abs(y_train.corr(X_train['X'])))
+print("Correlation of Y:",np.abs(y_train.corr(X_train['Y'])))
+print("Correlation of Z:",np.abs(y_train.corr(X_train['Z'])))
 print("\n")
 
  # from the correlations between y train(house value) and the other values
@@ -127,7 +132,7 @@ parameters = {'n_estimators': randint(50, 200),'max_depth': randint(2, 10),
 Pipl_RNDM_SRCH_CV = pipl([('model',RCV(RNDM_Forest,parameters,n_iter=5,cv=3,scoring='accuracy',random_state=42,n_jobs=-1))])
 
 
-# Stacking Classifier 
+# Stacking Classifier for the combination of 2 ML models which will be used in the final model to predict from unkown dataset
 from sklearn.ensemble import StackingClassifier
 
 # Two of the best performing Models Random forest and Logistic Regression
@@ -147,7 +152,7 @@ stk_class5 = StackingClassifier(estimators=estim5,cv=3,passthrough=False,n_jobs=
 stk_class6 = StackingClassifier(estimators=estim6,cv=3,passthrough=False,n_jobs=-1) 
 
 
-# preallocation
+# preallocation in a Dictionary to find all data
 y_pred_ = {}
 cm_ = {}
 scores_ = {}
@@ -155,7 +160,7 @@ precision_={}
 recall_ = {}
 f1_ = {}
 
-# handles all the models in 1 loop 
+# handles all the models in 1 loop. This does all the Model Training, Testing and Performance Metrics Analyis Plots and Values  
 
 for name, model in [('Logisitic Regression',Pipl_LogReg),('Decision Tree',Pipl_DecTree) ,('SVM',Pipl_SVM) ,('Random Forest',Pipl_RNDM_SRCH_CV), ('Stacked Classifier 1', stk_class1 ),('Stacked Classifier 2', stk_class2 )
                     ,('Stacked Classifier 3', stk_class3 ),('Stacked Classifier 4', stk_class4 ),('Stacked Classifier 5', stk_class5 ),('Stacked Classifier 6', stk_class6 )]:
@@ -171,7 +176,11 @@ for name, model in [('Logisitic Regression',Pipl_LogReg),('Decision Tree',Pipl_D
     print("Confusion Matrix:")
     # print(cm_LogRec)
     plt.figure()
-    sns.heatmap(np.abs(cm_[name]), annot= True, fmt="0.2f")
+    sns.heatmap(np.abs(cm_[name]), annot= True, fmt="d")
+    plt.title(f"Confusion Matrix — {name}")
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    plt.show()
     print("\n")
     # Performance Metrics 
     precision_[name] = precision_score(y_test, y_pred_[name],average='weighted',zero_division=0)
@@ -187,9 +196,11 @@ for name, model in [('Logisitic Regression',Pipl_LogReg),('Decision Tree',Pipl_D
 
 # Save as ajoblib file
 
-# joblib.dump(stk_class1,'Inverter_Maintainance_Steps_Model.joblib')
-# print('File Saved') 
-    
+joblib.dump(stk_class1,'Inverter_Maintainance_Steps_Model.joblib')
+print('File Saved') 
+   
+
+## Test code to check what metrics should be for each before adding to main loop
 # LogReg = LogisticReg(max_iter=1000, random_state=42)
 # LogReg.fit(X_train, y_train)
 # # print("Predictions:", LogReg.predict(X_test))
